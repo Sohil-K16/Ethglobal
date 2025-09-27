@@ -1,54 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Target, Calendar, DollarSign, Image, User, FileText, Loader2 } from 'lucide-react';
 import { useStateContext } from '../context';
-
-interface FormField {
-  labelName: string;
-  placeholder: string;
-  inputType: string;
-  isTextArea?: boolean;
-  value: string;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-}
-
-const FormField: React.FC<FormField> = ({ 
-  labelName, 
-  placeholder, 
-  inputType, 
-  isTextArea = false, 
-  value, 
-  handleChange 
-}) => {
-  return (
-    <label className="flex-1 w-full flex flex-col">
-      {labelName && (
-        <span className="font-epilogue font-medium text-[14px] leading-[22px] text-[#808191] mb-[10px]">
-          {labelName}
-        </span>
-      )}
-      {isTextArea ? (
-        <textarea 
-          required
-          value={value}
-          onChange={handleChange}
-          rows={10}
-          placeholder={placeholder}
-          className="py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px]"
-        />
-      ) : (
-        <input 
-          required
-          value={value}
-          onChange={handleChange}
-          type={inputType}
-          step="0.1"
-          placeholder={placeholder}
-          className="py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px]"
-        />
-      )}
-    </label>
-  );
-};
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input, TextArea } from '../components/ui/Input';
+import { FormField, FormLabel, FormMessage } from '../components/ui/Form';
 
 const CreateCampaign: React.FC = () => {
   const navigate = useNavigate();
@@ -90,91 +47,176 @@ const CreateCampaign: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#1c1c24] flex justify-center items-center flex-col rounded-[10px] sm:p-10 p-4">
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Loading Overlay */}
       {isLoading && (
-        <div className="fixed inset-0 z-10 h-screen bg-[rgba(0,0,0,0.7)] flex items-center justify-center flex-col">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#1dc071]"></div>
-          <p className="mt-4 font-epilogue font-bold text-[20px] text-white text-center">
-            Creating Campaign...
-          </p>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <Card className="p-6 text-center">
+            <div className="flex items-center justify-center mb-4">
+              <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">Creating Campaign</h3>
+            <p className="text-gray-400">Please wait while we process your campaign...</p>
+          </Card>
         </div>
       )}
 
-      <div className="flex justify-center items-center p-[16px] sm:min-w-[380px] bg-[#3a3a43] rounded-[10px]">
-        <h1 className="font-epilogue font-bold sm:text-[25px] text-[18px] leading-[38px] text-white">
-          Start a Campaign
-        </h1>
-      </div>
+      {/* Header Card */}
+      <Card variant="gradient" className="text-center">
+        <CardHeader>
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
+              <Target className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-bold">Start a Campaign</CardTitle>
+          <CardDescription className="text-lg">
+            Create your crowdfunding campaign and turn your ideas into reality
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      <form onSubmit={handleSubmit} className="w-full mt-[65px] flex flex-col gap-[30px]">
-        <div className="flex flex-wrap gap-[40px]">
-          <FormField 
-            labelName="Your Name *"
-            placeholder="John Doe"
-            inputType="text"
-            value={form.name}
-            handleChange={(e) => handleFormFieldChange('name', e)}
-          />
-          <FormField 
-            labelName="Campaign Title *"
-            placeholder="Write a title"
-            inputType="text"
-            value={form.title}
-            handleChange={(e) => handleFormFieldChange('title', e)}
-          />
-        </div>
+      {/* Form Card */}
+      <Card variant="elevated">
+        <CardContent className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Personal Info Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
+                <User className="w-5 h-5 text-purple-400" />
+                <h3 className="text-xl font-semibold text-white">Campaign Creator</h3>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField>
+                  <FormLabel required>Your Name</FormLabel>
+                  <Input
+                    type="text"
+                    placeholder="John Doe"
+                    value={form.name}
+                    onChange={(e) => handleFormFieldChange('name', e)}
+                    required
+                    variant="filled"
+                  />
+                </FormField>
+                <FormField>
+                  <FormLabel required>Campaign Title</FormLabel>
+                  <Input
+                    type="text"
+                    placeholder="Write a catchy title"
+                    value={form.title}
+                    onChange={(e) => handleFormFieldChange('title', e)}
+                    required
+                    variant="filled"
+                  />
+                </FormField>
+              </div>
+            </div>
 
-        <FormField 
-          labelName="Story *"
-          placeholder="Write your story"
-          isTextArea
-          inputType="text"
-          value={form.description}
-          handleChange={(e) => handleFormFieldChange('description', e)}
-        />
+            {/* Campaign Details Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
+                <FileText className="w-5 h-5 text-blue-400" />
+                <h3 className="text-xl font-semibold text-white">Campaign Details</h3>
+              </div>
+              <FormField>
+                <FormLabel required>Story</FormLabel>
+                <TextArea
+                  placeholder="Tell your story... What's your campaign about? Why do you need funding?"
+                  value={form.description}
+                  onChange={(e) => handleFormFieldChange('description', e)}
+                  required
+                  variant="filled"
+                  className="min-h-[120px]"
+                />
+                <FormMessage>Describe your project in detail to attract more supporters</FormMessage>
+              </FormField>
 
-        <div className="w-full flex justify-start items-center p-4 bg-[#8c6dfd] h-[120px] rounded-[10px]">
-          <span className="text-4xl mr-4">🎯</span>
-          <h4 className="font-epilogue font-bold text-[25px] text-white ml-[20px]">
-            You will get 100% of the raised amount
-          </h4>
-        </div>
+              <FormField>
+                <FormLabel required>Campaign Image</FormLabel>
+                <Input
+                  type="url"
+                  placeholder="https://example.com/your-image.jpg"
+                  value={form.image}
+                  onChange={(e) => handleFormFieldChange('image', e)}
+                  required
+                  variant="filled"
+                />
+                <FormMessage>Use a high-quality image that represents your campaign</FormMessage>
+              </FormField>
+            </div>
 
-        <div className="flex flex-wrap gap-[40px]">
-          <FormField 
-            labelName="Goal *"
-            placeholder="ETH 0.50"
-            inputType="text"
-            value={form.target}
-            handleChange={(e) => handleFormFieldChange('target', e)}
-          />
-          <FormField 
-            labelName="End Date *"
-            placeholder="End Date"
-            inputType="date"
-            value={form.deadline}
-            handleChange={(e) => handleFormFieldChange('deadline', e)}
-          />
-        </div>
+            {/* Funding Info Card */}
+            <Card variant="gradient" className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border-green-500/30">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <Target className="w-12 h-12 text-green-400" />
+                  <div>
+                    <h3 className="text-xl font-bold text-white">100% Funding Guarantee</h3>
+                    <p className="text-green-200">You receive all the funds raised from your supporters</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <FormField 
-          labelName="Campaign image *"
-          placeholder="Place image URL of your campaign"
-          inputType="url"
-          value={form.image}
-          handleChange={(e) => handleFormFieldChange('image', e)}
-        />
+            {/* Funding Details Section */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
+                <DollarSign className="w-5 h-5 text-green-400" />
+                <h3 className="text-xl font-semibold text-white">Funding Goals</h3>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField>
+                  <FormLabel required>Funding Goal (ETH)</FormLabel>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    placeholder="0.50"
+                    value={form.target}
+                    onChange={(e) => handleFormFieldChange('target', e)}
+                    required
+                    variant="filled"
+                  />
+                  <FormMessage>Enter the amount you need to raise in ETH</FormMessage>
+                </FormField>
+                <FormField>
+                  <FormLabel required>End Date</FormLabel>
+                  <Input
+                    type="date"
+                    value={form.deadline}
+                    onChange={(e) => handleFormFieldChange('deadline', e)}
+                    required
+                    variant="filled"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <FormMessage>When should your campaign end?</FormMessage>
+                </FormField>
+              </div>
+            </div>
 
-        <div className="flex justify-center items-center mt-[40px]">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-[#1dc071] hover:bg-[#1aa160] font-epilogue font-semibold text-[16px] leading-[26px] text-white min-h-[52px] px-4 rounded-[10px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? 'Creating...' : 'Submit new campaign'}
-          </button>
-        </div>
-      </form>
+            {/* Submit Button */}
+            <div className="flex justify-center pt-8">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                size="lg"
+                className="min-w-[200px]"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Target className="w-4 h-4 mr-2" />
+                    Launch Campaign
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

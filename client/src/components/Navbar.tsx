@@ -1,62 +1,126 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Plus, User, Menu, X } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const account = useActiveAccount();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Implement search functionality
+    console.log('Search query:', searchQuery);
+  };
 
   return (
-    <div className="flex md:flex-row flex-col-reverse justify-between mb-[35px] gap-6">
-      <div className="lg:flex-1 flex flex-row max-w-[458px] py-2 pl-4 pr-2 h-[52px] bg-[#1c1c24] rounded-[100px]">
-        <input 
-          type="text" 
-          placeholder="Search for campaigns" 
-          className="flex w-full font-epilogue font-normal text-[14px] placeholder:text-[#4b5264] text-white bg-transparent outline-none"
-        />
-        
-        <button className="w-[72px] h-full rounded-[20px] bg-[#4acd8d] flex justify-center items-center hover:bg-[#3fb374] transition-colors">
-          <span className="text-white text-xl">🔍</span>
-        </button>
-      </div>
+    <>
+      <div className="flex items-center justify-between mb-8 gap-6">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search campaigns..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4"
+              variant="filled"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          </div>
+        </form>
 
-      <div className="sm:flex hidden flex-row justify-end gap-4">
-        <button 
-          className="bg-[#1dc071] hover:bg-[#1aa160] px-4 py-2 rounded-[10px] text-white font-semibold transition-colors"
-          onClick={() => navigate('/create-campaign')}
-        >
-          Create Campaign
-        </button>
-
-        {account && (
-          <button 
-            className="w-[52px] h-[52px] rounded-full bg-[#2c2f32] flex justify-center items-center hover:bg-[#3c3f42] transition-colors"
-            onClick={() => navigate('/profile')}
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          <Button
+            variant="default"
+            size="default"
+            onClick={() => navigate('/create-campaign')}
+            className="gap-2"
           >
-            <span className="text-[#1dc071] font-semibold text-lg">
-              {account.address?.slice(0, 2).toUpperCase()}
-            </span>
-          </button>
-        )}
+            <Plus className="w-4 h-4" />
+            Create Campaign
+          </Button>
+
+          {account ? (
+            <Button
+              variant="outline"
+              size="default"
+              onClick={() => navigate('/profile')}
+              className="gap-2"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {account.address?.slice(0, 6)}...{account.address?.slice(-4)}
+              </span>
+            </Button>
+          ) : (
+            <Button variant="secondary" size="default">
+              Connect Wallet
+            </Button>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
       </div>
 
-      {/* Small screen menu */}
-      <div className="sm:hidden flex justify-between items-center relative">
-        <button 
-          className="w-[40px] h-[40px] rounded-[10px] bg-[#2c2f32] flex justify-center items-center hover:bg-[#3c3f42] transition-colors"
-          onClick={() => navigate('/')}
-        >
-          <span className="text-2xl">🚀</span>
-        </button>
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => {
+                navigate('/create-campaign');
+                setIsMobileMenuOpen(false);
+              }}
+              className="gap-2 w-full"
+            >
+              <Plus className="w-4 h-4" />
+              Create Campaign
+            </Button>
 
-        <button 
-          className="bg-[#1dc071] hover:bg-[#1aa160] px-3 py-2 rounded-[10px] text-white font-semibold text-sm transition-colors"
-          onClick={() => navigate('/create-campaign')}
-        >
-          Create
-        </button>
-      </div>
-    </div>
+            {account ? (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => {
+                  navigate('/profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="gap-2 w-full"
+              >
+                <User className="w-4 h-4" />
+                {account.address?.slice(0, 6)}...{account.address?.slice(-4)}
+              </Button>
+            ) : (
+              <Button variant="secondary" size="default" className="w-full">
+                Connect Wallet
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
