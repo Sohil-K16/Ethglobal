@@ -1,41 +1,25 @@
-require("@matterlabs/hardhat-zksync-solc");
-require("@matterlabs/hardhat-zksync-verify");
-
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  zksolc: {
-    version: "1.4.1",
-    compilerSource: "binary",
-    settings: {
-      optimizer: {
-        enabled: true,
-      },
-    },
-  },
   networks: {
-    zkSyncSepoliaTestnet: {
-      url: "https://sepolia.era.zksync.dev",
-      ethNetwork: "sepolia",
-      zksync: true,
-      chainId: 300,
-      verifyURL:
-        "https://explorer.sepolia.era.zksync.dev/contract_verification",
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 11155111,
     },
-    zkSyncMainnet: {
-      url: "https://mainnet.era.zksync.io",
-      ethNetwork: "mainnet",
-      zksync: true,
-      chainId: 324,
-      verifyURL:
-        "https://zksync2-mainnet-explorer.zksync.io/contract_verification",
+    ethereum: {
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 1,
     },
   },
-  paths: {
-    artifacts: "./artifacts-zk",
-    cache: "./cache-zk",
-    sources: "./contracts",
-    tests: "./test",
+  etherscan: {
+    apiKey: {
+      sepolia: process.env.ETHERSCAN_API_KEY,
+      mainnet: process.env.ETHERSCAN_API_KEY,
+    },
   },
   solidity: {
     version: "0.8.23",
