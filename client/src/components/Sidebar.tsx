@@ -12,14 +12,18 @@ interface IconProps {
 }
 
 const Icon: React.FC<IconProps> = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
-  <div 
-    className={`w-[48px] h-[48px] rounded-[10px] ${isActive === name ? 'bg-[#2c2f32]' : ''} flex justify-center items-center ${!disabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} ${styles} hover:bg-[#2c2f32] transition-all`} 
+  <button
+    type="button"
+    className={`w-[48px] h-[48px] rounded-[10px] ${isActive === name ? 'bg-[#2c2f32]' : ''} flex justify-center items-center ${!disabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} ${styles} hover:bg-[#2c2f32] transition-all`}
     onClick={handleClick}
+    disabled={disabled}
+    aria-pressed={isActive === name}
+    tabIndex={disabled ? -1 : 0}
   >
     <span className={`text-2xl ${isActive !== name ? 'grayscale' : ''}`}>
       {imgUrl}
     </span>
-  </div>
+  </button>
 );
 
 const Sidebar: React.FC = () => {

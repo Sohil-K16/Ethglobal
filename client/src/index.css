@@ -1,8 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&display=swap");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Removed Tailwind directives because they are not recognized without Tailwind build setup */
 
 :root {
   line-height: 1.5;
@@ -50,8 +48,7 @@
   transition: all 0.2s ease-in-out;
 }
 
-@layer base {
-  body {
-    @apply bg-[#13131a] font-epilogue;
-  }
+body {
+  background-color: #13131a;
+  font-family: 'Epilogue', sans-serif;
 }
