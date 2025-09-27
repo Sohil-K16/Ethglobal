@@ -1,7 +1,9 @@
 import { createThirdwebClient, defineChain } from "thirdweb";
 
 // Your thirdweb client ID (you can get one for free at https://thirdweb.com/dashboard)
-const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "your_client_id_here";
+const clientId = import.meta.env.VITE_THIRDWEB_CLIENT_ID || "2eba39296fe460083c8cc4d0c005a719";
+
+console.log("🔧 thirdweb config loading:", { clientId: clientId ? "✅" : "❌" });
 
 export const client = createThirdwebClient({
   clientId,
@@ -16,7 +18,7 @@ export const sepolia = defineChain({
     symbol: "SEP",
     decimals: 18,
   },
-  rpc: `https://sepolia.infura.io/v3/${process.env.VITE_INFURA_API_KEY}`,
+  rpc: `https://sepolia.infura.io/v3/${import.meta.env.VITE_INFURA_API_KEY || "c9a66d36cd524232b14a6889cde5c4c8"}`,
   blockExplorers: [
     {
       name: "Etherscan",

@@ -1,0 +1,25 @@
+{
+  "name": "decentralfund-contracts",
+  "description": "DecentralFund - Smart Contracts for Web3 Crowdfunding Platform",
+  "version": "1.0.0",
+  "keywords": ["solidity", "smart-contracts", "crowdfunding", "ethereum", "web3"],
+  "author": "DecentralFund Team",
+  "license": "MIT",
+  "scripts": {
+    "build": "npx thirdweb@latest detect",
+    "deploy": "npx thirdweb@latest deploy",
+    "deploy:testnet": "npx thirdweb@latest deploy --network goerli",
+    "deploy:mainnet": "npx thirdweb@latest deploy --network mainnet",
+    "release": "npx thirdweb@latest release",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "node": "npx hardhat node"
+  },
+  "devDependencies": {
+    "hardhat": "^2.10.1"
+  },
+  "dependencies": {
+    "@thirdweb-dev/contracts": "^3",
+    "dotenv": "^16.0.3"
+  }
+}

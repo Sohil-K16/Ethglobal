@@ -1,30 +1,32 @@
-import { ConnectButton } from "thirdweb/react";
-import { client } from "./client";
-import { sepolia } from "./config/thirdweb";
-import { CrowdfundingDashboard } from "./components/CrowdfundingDashboard";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Sidebar, Navbar } from './components';
+import { CampaignDetails, CreateCampaign, Home, Profile } from './pages';
+import { StateContextProvider } from './context';
 
 export function App() {
-	return (
-		<main className="min-h-[100vh] bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-			<div className="container mx-auto px-4 py-8">
-				<Header />
-				
-				<div className="flex justify-center mb-8">
-					<ConnectButton
-						client={client}
-						chain={sepolia}
-						appMetadata={{
-							name: "CrowdFunding DApp",
-							url: "https://github.com/Sohil-K16/Ethglobal",
-							description: "Decentralized Crowdfunding Platform",
-						}}
-					/>
-				</div>
+  return (
+    <StateContextProvider>
+      <Router>
+        <div className="relative sm:-8 p-4 bg-[#13131a] min-h-screen flex flex-row">
+          <div className="sm:flex hidden mr-10 relative">
+            <Sidebar />
+          </div>
 
-				<CrowdfundingDashboard />
-			</div>
-		</main>
-	);
+          <div className="flex-1 max-sm:w-full max-w-[1280px] mx-auto sm:pr-5">
+            <Navbar />
+
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/create-campaign" element={<CreateCampaign />} />
+              <Route path="/campaign-details/:id" element={<CampaignDetails />} />
+            </Routes>
+          </div>
+        </div>
+      </Router>
+    </StateContextProvider>
+  );
 }
 
 function Header() {
