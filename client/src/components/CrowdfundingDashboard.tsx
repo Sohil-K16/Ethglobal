@@ -1,17 +1,22 @@
 import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
-import { getContract } from "thirdweb";
-import { client, sepolia, CROWDFUNDING_CONTRACT_ADDRESS } from "../config/thirdweb";
+import { 
+  useGetCampaigns, 
+  useGetCampaignCount, 
+  createCampaign,
+  donateToCampaign,
+  formatCampaignData,
+  getRemainingDays,
+  getProgressPercentage,
+  type Campaign
+} from "../hooks/useCrowdfunding";
 
 export function CrowdfundingDashboard() {
   const account = useActiveAccount();
   const [activeTab, setActiveTab] = useState<"create" | "campaigns">("campaigns");
-
-  const contract = getContract({
-    client,
-    chain: sepolia,
-    address: CROWDFUNDING_CONTRACT_ADDRESS,
-  });
+  
+  const { campaigns, isLoading: campaignsLoading } = useGetCampaigns();
+  const { count } = useGetCampaignCount();
 
   if (!account) {
     return (
@@ -67,47 +72,194 @@ export function CrowdfundingDashboard() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "campaigns" && <CampaignsList contract={contract} />}
-      {activeTab === "create" && <CreateCampaign contract={contract} />}
+      {activeTab === "campaigns" && <CampaignsList campaigns={campaigns} isLoading={campaignsLoading} />}
+      {activeTab === "create" && <CreateCampaign account={account} />}
     </div>
   );
 }
 
-function CampaignsList({ contract }: { contract: any }) {
-  // This would typically fetch campaigns from the contract
-  // For now, showing a placeholder
+function CampaignsList({ campaigns, isLoading }: { readonly campaigns: readonly any[], readonly isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white mb-6">Active Campaigns</h2>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading campaigns...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!campaigns || campaigns.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white mb-6">Active Campaigns</h2>
+        
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🚀</div>
+          <h3 className="text-xl font-semibold text-white mb-2">No campaigns yet!</h3>
+          <p className="text-gray-400 mb-6">Be the first to create a crowdfunding campaign</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-white mb-6">Active Campaigns</h2>
+      <h2 className="text-2xl font-bold text-white mb-6">Active Campaigns ({campaigns.length})</h2>
       
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🚀</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No campaigns yet!</h3>
-        <p className="text-gray-400 mb-6">Be the first to create a crowdfunding campaign</p>
-        <button
-          onClick={() => {}} // This would switch to create tab
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-        >
-          Create First Campaign
-        </button>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {campaigns.map((campaign, index) => {
+          const formatted = formatCampaignData(campaign);
+          const progress = getProgressPercentage(formatted.amountCollected, formatted.target);
+          const remainingDays = getRemainingDays(formatted.deadline);
+          
+          return (
+            <CampaignCard 
+              key={index} 
+              campaign={formatted} 
+              campaignId={index}
+              progress={progress}
+              remainingDays={remainingDays}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function CreateCampaign({ contract }: { contract: any }) {
+function CampaignCard({ 
+  campaign, 
+  campaignId, 
+  progress, 
+  remainingDays 
+}: { 
+  campaign: Campaign, 
+  campaignId: number, 
+  progress: number, 
+  remainingDays: number 
+}) {
+  const account = useActiveAccount();
+  const [donationAmount, setDonationAmount] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDonate = async () => {
+    if (!account || !donationAmount) return;
+    
+    setIsLoading(true);
+    try {
+      await donateToCampaign(account, campaignId, donationAmount);
+      setDonationAmount("");
+      alert("Donation successful! 🎉");
+    } catch (error) {
+      console.error("Donation failed:", error);
+      alert("Donation failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-black/40 backdrop-blur-sm rounded-lg p-6 border border-gray-700 hover:border-purple-500 transition-colors">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-white mb-2">{campaign.title}</h3>
+        <p className="text-gray-400 text-sm line-clamp-3">{campaign.description}</p>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex justify-between text-sm text-gray-400 mb-1">
+          <span>Progress</span>
+          <span>{progress.toFixed(1)}%</span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-2">
+          <div 
+            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-sm text-gray-400 mt-1">
+          <span>{campaign.amountCollected} ETH raised</span>
+          <span>of {campaign.target} ETH</span>
+        </div>
+      </div>
+
+      <div className="flex justify-between text-sm text-gray-400 mb-4">
+        <span>👥 {campaign.donators.length} backers</span>
+        <span>📅 {remainingDays > 0 ? `${remainingDays} days left` : "Expired"}</span>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            step="0.01"
+            placeholder="0.1 ETH"
+            value={donationAmount}
+            onChange={(e) => setDonationAmount(e.target.value)}
+            className="flex-1 px-3 py-2 bg-black/40 border border-gray-600 rounded text-white text-sm"
+          />
+          <button
+            onClick={handleDonate}
+            disabled={!account || !donationAmount || isLoading || remainingDays <= 0}
+            className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white px-4 py-2 rounded text-sm font-semibold transition-colors"
+          >
+            {isLoading ? "..." : "💝 Donate"}
+          </button>
+        </div>
+        
+        <p className="text-xs text-gray-500">
+          Owner: {campaign.owner.substring(0, 6)}...{campaign.owner.substring(38)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CreateCampaign({ account }: { account: any }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     target: "",
     deadline: "",
+    image: "",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This would call the smart contract to create a campaign
-    console.log("Creating campaign:", formData);
-    alert("Campaign creation coming soon! Smart contract integration in progress.");
+    if (!account) return;
+
+    setIsLoading(true);
+    try {
+      const result = await createCampaign(
+        account,
+        formData.title,
+        formData.description,
+        formData.target,
+        formData.deadline,
+        formData.image || ""
+      );
+      
+      console.log("Campaign created:", result);
+      alert("🎉 Campaign created successfully!");
+      
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        target: "",
+        deadline: "",
+        image: "",
+      });
+    } catch (error) {
+      console.error("Failed to create campaign:", error);
+      alert("❌ Failed to create campaign. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -175,15 +327,16 @@ function CreateCampaign({ contract }: { contract: any }) {
 
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
+          disabled={isLoading}
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 disabled:transform-none"
         >
-          🚀 Create Campaign
+          {isLoading ? "🔄 Creating..." : "🚀 Create Campaign"}
         </button>
       </form>
 
-      <div className="mt-8 p-4 bg-yellow-900/30 border border-yellow-700/50 rounded-lg">
-        <p className="text-yellow-300 text-sm">
-          <strong>Note:</strong> This is a demo interface. Smart contract integration for creating campaigns is coming in the next update!
+      <div className="mt-8 p-4 bg-green-900/30 border border-green-700/50 rounded-lg">
+        <p className="text-green-300 text-sm">
+          <strong>✅ Live on Sepolia:</strong> Your campaigns will be created on-chain and are fully functional!
         </p>
       </div>
     </div>
