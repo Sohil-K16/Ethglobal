@@ -26,7 +26,12 @@ const FundCard: React.FC<FundCardProps> = ({
   const percentage = calculateBarPercentage(formatEther(target), formatEther(amountCollected));
 
   return (
-    <div className="sm:w-[288px] w-full rounded-[15px] bg-[#1c1c24] cursor-pointer" onClick={handleClick}>
+    <button
+      type="button"
+      className="sm:w-[288px] w-full rounded-[15px] bg-[#1c1c24] cursor-pointer p-0 border-none"
+      onClick={handleClick}
+      style={{ textAlign: 'left' }}
+    >
       <img 
         src={image || 'https://via.placeholder.com/288x158?text=Campaign+Image'} 
         alt="fund" 
@@ -92,7 +97,7 @@ const FundCard: React.FC<FundCardProps> = ({
           <p className="mt-1 text-xs text-[#808191]">{percentage}% funded</p>
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 

@@ -16,7 +16,7 @@ export function CrowdfundingDashboard() {
   const [activeTab, setActiveTab] = useState<"create" | "campaigns">("campaigns");
   
   const { campaigns, isLoading: campaignsLoading } = useGetCampaigns();
-  const { count } = useGetCampaignCount();
+  useGetCampaignCount();
 
   if (!account) {
     return (
@@ -114,10 +114,12 @@ function CampaignsList({ campaigns, isLoading }: { readonly campaigns: readonly 
           const formatted = formatCampaignData(campaign);
           const progress = getProgressPercentage(formatted.amountCollected, formatted.target);
           const remainingDays = getRemainingDays(formatted.deadline);
+          // Use campaign.owner + deadline as a unique key (adjust if you have a better unique id)
+          const uniqueKey = `${formatted.owner}-${formatted.deadline}`;
           
           return (
             <CampaignCard 
-              key={index} 
+              key={uniqueKey} 
               campaign={formatted} 
               campaignId={index}
               progress={progress}
@@ -136,10 +138,10 @@ function CampaignCard({
   progress, 
   remainingDays 
 }: { 
-  campaign: Campaign, 
-  campaignId: number, 
-  progress: number, 
-  remainingDays: number 
+  readonly campaign: Campaign, 
+  readonly campaignId: number, 
+  readonly progress: number, 
+  readonly remainingDays: number 
 }) {
   const account = useActiveAccount();
   const [donationAmount, setDonationAmount] = useState("");
@@ -217,7 +219,7 @@ function CampaignCard({
   );
 }
 
-function CreateCampaign({ account }: { account: any }) {
+function CreateCampaign({ account }: { readonly account: any }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -268,10 +270,11 @@ function CreateCampaign({ account }: { account: any }) {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="campaign-title" className="block text-sm font-medium text-gray-300 mb-2">
             Campaign Title
           </label>
           <input
+            id="campaign-title"
             type="text"
             value={formData.title}
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
@@ -282,10 +285,11 @@ function CreateCampaign({ account }: { account: any }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="campaign-description" className="block text-sm font-medium text-gray-300 mb-2">
             Description
           </label>
           <textarea
+            id="campaign-description"
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={4}
@@ -297,10 +301,11 @@ function CreateCampaign({ account }: { account: any }) {
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="target-amount" className="block text-sm font-medium text-gray-300 mb-2">
               Target Amount (ETH)
             </label>
             <input
+              id="target-amount"
               type="number"
               step="0.01"
               value={formData.target}
@@ -312,10 +317,11 @@ function CreateCampaign({ account }: { account: any }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="campaign-deadline" className="block text-sm font-medium text-gray-300 mb-2">
               Deadline
             </label>
             <input
+              id="campaign-deadline"
               type="date"
               value={formData.deadline}
               onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}

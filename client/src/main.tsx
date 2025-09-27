@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { SimpleApp } from "./SimpleApp";
 import { ThirdwebProvider } from "thirdweb/react";
 import "./index.css";
 
