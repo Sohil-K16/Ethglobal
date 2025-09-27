@@ -1,7 +1,9 @@
 import React from 'react';
-import { Calendar, Target, TrendingUp, User } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
+import { Target, User, ArrowUpRight, Clock, DollarSign } from 'lucide-react';
+import { Card, CardDescription, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
+import { Badge, Progress } from './ui/Elements';
+import { Flex } from './ui/Layout';
 import { formatEther, daysLeft, calculateBarPercentage } from '../utils/helpers';
 
 interface FundCardProps {
@@ -27,102 +29,145 @@ const FundCard: React.FC<FundCardProps> = ({
 }) => {
   const remainingDays = daysLeft(deadline);
   const percentage = calculateBarPercentage(formatEther(target), formatEther(amountCollected));
+  const raisedAmount = parseFloat(formatEther(amountCollected));
+  const targetAmount = parseFloat(formatEther(target));
+  
+  const isExpired = remainingDays <= 0;
+  const isAlmostExpired = remainingDays <= 7 && remainingDays > 0;
+  const isSuccessful = percentage >= 100;
+
+  const getStatusBadge = () => {
+    if (isSuccessful) {
+      return <Badge variant="success" size="sm">Funded</Badge>;
+    }
+    if (isExpired) {
+      return <Badge variant="destructive" size="sm">Expired</Badge>;
+    }
+    if (isAlmostExpired) {
+      return <Badge variant="warning" size="sm">Ending Soon</Badge>;
+    }
+    return <Badge variant="info" size="sm">Active</Badge>;
+  };
 
   return (
     <Card 
       variant="elevated" 
       interactive 
-      className="w-full max-w-sm group overflow-hidden"
+      className="w-full group overflow-hidden border-0 bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl hover:from-gray-800/90 hover:to-gray-700/90 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10"
       onClick={handleClick}
     >
-      <div className="relative overflow-hidden">
+      {/* Image Section */}
+      <div className="relative overflow-hidden h-48">
         <img
-          src={image || 'https://via.placeholder.com/288x158?text=Campaign+Image'}
+          src={image || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400&h=200&fit=crop&crop=center'}
           alt={title}
-          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
           onError={(e) => {
-            e.currentTarget.src = 'https://via.placeholder.com/288x158?text=No+Image';
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400&h=200&fit=crop&crop=center';
           }}
         />
-        <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-600/90 text-white backdrop-blur-sm">
+        
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+          <Badge variant="gradient" size="sm" className="backdrop-blur-sm">
             <Target className="w-3 h-3 mr-1" />
             Campaign
-          </span>
+          </Badge>
+          {getStatusBadge()}
+        </div>
+
+        {/* Progress Overlay */}
+        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="bg-black/80 backdrop-blur-sm rounded-lg p-3">
+            <Flex justify="between" align="center" className="mb-2">
+              <span className="text-white text-sm font-medium">{percentage}% Funded</span>
+              <span className="text-gray-300 text-xs">{remainingDays} days left</span>
+            </Flex>
+            <Progress value={percentage} variant="gradient" size="sm" />
+          </div>
         </div>
       </div>
 
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-bold line-clamp-1 group-hover:text-purple-300 transition-colors">
-          {title}
-        </CardTitle>
-        <CardDescription className="text-sm line-clamp-2 text-gray-400">
-          {description}
-        </CardDescription>
-      </CardHeader>
+      {/* Content Section */}
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <CardTitle className="text-xl font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
+            {title}
+          </CardTitle>
+          <CardDescription className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
+            {description}
+          </CardDescription>
+        </div>
 
-      <CardContent className="space-y-4">
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Progress</span>
-            <span className="text-purple-400 font-semibold">{percentage}%</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
+        {/* Progress Section */}
+        <div className="mb-6 space-y-3">
+          <Flex justify="between" align="center">
+            <span className="text-gray-400 text-sm">Progress</span>
+            <span className="text-purple-400 font-semibold text-sm">{percentage}%</span>
+          </Flex>
+          <Progress value={percentage} variant="gradient" />
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-gray-400">Raised</span>
-            </div>
-            <p className="font-semibold text-white text-sm">{formatEther(amountCollected)} ETH</p>
-            <p className="text-xs text-gray-500">of {formatEther(target)} ETH</p>
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+            <Flex align="center" gap="sm" className="mb-2">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <span className="text-xs text-gray-400 font-medium">Raised</span>
+            </Flex>
+            <p className="font-bold text-white text-lg">{raisedAmount.toFixed(3)}</p>
+            <p className="text-xs text-gray-500">of {targetAmount.toFixed(3)} ETH</p>
           </div>
           
-          <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-            <div className="flex items-center gap-2 mb-1">
-              <Calendar className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-gray-400">Days Left</span>
-            </div>
-            <p className="font-semibold text-white text-sm">{remainingDays}</p>
+          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-4">
+            <Flex align="center" gap="sm" className="mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <span className="text-xs text-gray-400 font-medium">Time Left</span>
+            </Flex>
+            <p className="font-bold text-white text-lg">{remainingDays}</p>
             <p className="text-xs text-gray-500">
-              {remainingDays === 0 ? 'Expired' : remainingDays === 1 ? 'day' : 'days'}
+              {(() => {
+                if (remainingDays === 0) return 'Expired';
+                if (remainingDays === 1) return 'day';
+                return 'days';
+              })()}
             </p>
           </div>
         </div>
 
-        {/* Owner Info */}
-        <div className="flex items-center gap-3 pt-2 border-t border-gray-700/50">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400">Created by</p>
-            <p className="text-sm font-medium text-white truncate">{owner}</p>
-          </div>
+        {/* Creator Info */}
+        <div className="mb-6 p-3 bg-gray-800/30 rounded-xl border border-gray-700/30">
+          <Flex align="center" gap="sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-400 mb-1">Campaign Creator</p>
+              <p className="text-sm font-medium text-white truncate">
+                {owner.slice(0, 6)}...{owner.slice(-4)}
+              </p>
+            </div>
+          </Flex>
         </div>
 
         {/* Action Button */}
         <Button 
           variant="default" 
-          size="sm" 
-          className="w-full mt-4"
+          size="default"
+          className="w-full group/btn hover:scale-[1.02] transition-all"
           onClick={(e) => {
             e.stopPropagation();
             handleClick();
           }}
         >
-          View Details
+          <span>View Campaign</span>
+          <ArrowUpRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
         </Button>
-      </CardContent>
+      </div>
     </Card>
   );
 };
